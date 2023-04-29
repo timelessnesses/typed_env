@@ -1,23 +1,30 @@
-from dotenv import dotenv_values
-from enum import Enum
-from typing import Optional, Callable, Any
-from json import loads
 import datetime
+from enum import Enum
+from json import loads
+from typing import Any, Callable, Optional
+
+from dotenv import dotenv_values
+
+
 def int_validator(value: Optional[str]) -> int:
     if value is None:
         raise ValueError("Value is None")
     return int(value)
 
+
 def optional_int_validator(value: Optional[str]) -> Optional[int]:
     return None if value is None else int(value)
+
 
 def str_validator(value: Optional[str]) -> str:
     if value is None:
         raise ValueError("Value is None")
     return value
 
+
 def optional_str_validator(value: Optional[str]) -> Optional[str]:
     return None if value is None else value
+
 
 def datetime_validator(value: Optional[str]) -> datetime.datetime:
     if value is None:
@@ -30,28 +37,34 @@ def datetime_validator(value: Optional[str]) -> datetime.datetime:
             return datetime.datetime.fromtimestamp(int(value))
         except ValueError as f:
             raise f from e
-        
+
+
 def optional_datetime_validator(value: Optional[str]) -> Optional[datetime.datetime]:
     try:
         return datetime_validator(value)
     except ValueError:
         return None
-    
+
+
 def dict_validator(value: Optional[str]) -> dict:
     if value is None:
         raise ValueError("Value is None")
     return loads(value)
 
+
 def optional_dict_validator(value: Optional[str]) -> Optional[dict]:
     return None if value is None else loads(value)
+
 
 def timedelta_validator(value: Optional[str]) -> datetime.timedelta:
     if value is None:
         raise ValueError("Value is None")
     return datetime.timedelta(seconds=int(value))
 
+
 def optional_timedelta_validator(value: Optional[str]) -> Optional[datetime.timedelta]:
     return datetime.timedelta(seconds=int(value)) if value is not None else None
+
 
 def bool_validator(value: Optional[str]) -> bool:
     if value is None:
@@ -68,9 +81,11 @@ def bool_validator(value: Optional[str]) -> bool:
                 raise ValueError("Value is not a boolean")
         except ValueError as f:
             raise f from e
-        
+
+
 def optional_bool_validator(value: Optional[str]) -> Optional[bool]:
     return None if value is None else bool_validator(value)
+
 
 default_validators: dict[type, Callable[[Optional[str]], Any]] = {
     int: int_validator,
@@ -83,11 +98,12 @@ default_validators: dict[type, Callable[[Optional[str]], Any]] = {
     Optional[datetime.date]: optional_datetime_validator,
     datetime.timedelta: timedelta_validator,
     Optional[datetime.timedelta]: optional_timedelta_validator,
-    dict : dict_validator,
+    dict: dict_validator,
     Optional[dict]: optional_dict_validator,
     bool: bool_validator,
-    Optional[bool]: optional_bool_validator
+    Optional[bool]: optional_bool_validator,
 }
+
 
 class TypedEnv:
     """
@@ -102,18 +118,18 @@ class TypedEnv:
     But you can extend it with your own type converters by using add_validator method with a type and a function that takes string (optionally).
     Or you can overwrite the validators dict to your own!
     """
-    
+
     types: dict[str, type] = {}
     validators: dict[type, Callable[[Optional[str]], type]] = {}
-    
+
     def __init_subclass__(cls) -> None:
         cls.types = {}
-        
+
         for key, value in cls.__annotations__.items():
             cls.types[key] = value
         cls.validators.update(default_validators)
-    
-    def load(self, dotenv: Optional[str]=None,**kwargs) -> None:
+
+    def load(self, dotenv: Optional[str] = None, **kwargs) -> None:
         envs = dotenv_values(dotenv_path=dotenv, **kwargs)
         successful = {}
         for key, value in envs.items():
@@ -148,7 +164,8 @@ class TypedEnv:
                         continue
                     else:
                         setattr(self, key, None)
-    def add_validator(self, type_: type, validator: Callable[[Optional[str]], type]) -> None:
+
+    def add_validator(
+        self, type_: type, validator: Callable[[Optional[str]], type]
+    ) -> None:
         self.validators[type_] = validator
-        
-    
