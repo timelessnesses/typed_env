@@ -87,7 +87,7 @@ def optional_bool_validator(value: Optional[str]) -> Optional[bool]:
     return None if value is None else bool_validator(value)
 
 
-default_validators: dict[type, Callable[[Optional[str]], Any]] = {
+default_validators: dict[object, Callable[[Optional[str]], Any]] = {
     int: int_validator,
     Optional[int]: optional_int_validator,
     str: str_validator,
@@ -119,8 +119,8 @@ class TypedEnv:
     Or you can overwrite the validators dict to your own!
     """
 
-    types: dict[str, type] = {}
-    validators: dict[type, Callable[[Optional[str]], type]] = {}
+    types: dict[str, object] = {}
+    validators: dict[object, Callable[[Optional[str]], object]] = {}
 
     def __init_subclass__(cls) -> None:
         cls.types = {}
@@ -166,6 +166,6 @@ class TypedEnv:
                         setattr(self, key, None)
 
     def add_validator(
-        self, type_: type, validator: Callable[[Optional[str]], type]
+        self, type_: object, validator: Callable[[Optional[str]], object]
     ) -> None:
         self.validators[type_] = validator

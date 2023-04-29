@@ -1,6 +1,6 @@
 import unittest
 
-from typed_env.typed_env import TypedEnv
+from typed_env import TypedEnv
 
 
 class MyDotEnv(TypedEnv):
