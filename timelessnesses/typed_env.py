@@ -86,6 +86,19 @@ def bool_validator(value: Optional[str]) -> bool:
 def optional_bool_validator(value: Optional[str]) -> Optional[bool]:
     return None if value is None else bool_validator(value)
 
+def list_validator(value: Optional[str]) -> list:
+    if value is None:
+        raise ValueError("Value is None")
+    try:
+        return loads(value)
+    except ValueError as e:
+        try:
+            return value.split(",")
+        except Exception as f:
+            raise f from e
+
+def optional_list_validator(value: Optional[str]) -> Optional[list]:
+    return None if value is None else list_validator(value)
 
 default_validators: dict[object, Callable[[Optional[str]], Any]] = {
     int: int_validator,
@@ -102,6 +115,8 @@ default_validators: dict[object, Callable[[Optional[str]], Any]] = {
     Optional[dict]: optional_dict_validator,
     bool: bool_validator,
     Optional[bool]: optional_bool_validator,
+    list: list_validator,
+    Optional[list]: optional_list_validator
 }
 
 
