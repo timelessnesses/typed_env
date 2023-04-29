@@ -1,11 +1,12 @@
 [tool.poetry]
-name = "typed-env"
+name = "timelessnesses-typed-env"
 version = "0.1.0"
 description = "A python module that help you have a type safety on enviroment variable"
 authors = ["timelessnesses <mooping3roblox@gmail.com>"]
 license = "MIT"
 readme = "README.md"
-packages = [{include = "typed_env"}]
+packages = [{include = "timelessnesses"}]
+homepage = "https://github.com/timelessnesses/typed_env"
 
 [tool.poetry.dependencies]
 python = "^3.8"

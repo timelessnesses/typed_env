@@ -134,16 +134,13 @@ class TypedEnv:
         successful = {}
         for key, value in envs.items():
             if key in self.types:
-                print("it's in the type!")
                 try:
                     value = self.validators[self.types[key]](value)
-                    print(f"got the type validated! {value}")
                 except ValueError as e:
-                    raise ValueError(f"Error while parsing {key}.") from e
+                    raise ValueError(f"Error while parsing {key} (type {self.types[key]}).") from e
                 except KeyError as e:
                     raise ValueError(f"Unknown type {self.types[key]}") from e
                 if value is not None:
-                    print("value is not none")
                     setattr(self, key, value)
                     successful[key] = value
                 else:
@@ -151,7 +148,6 @@ class TypedEnv:
                         raise ValueError(f"Variable {key} was not set!")
                     elif not hasattr(self, key) and self.types[key] is Optional:
                         setattr(self, key, None)
-                print("continue!")
                 continue
             raise ValueError(f"Unknown type {self.types[key]}")
         # now we check if any enviroment variable were not used and any variable that we didn't set
@@ -169,3 +165,6 @@ class TypedEnv:
         self, type_: object, validator: Callable[[Optional[str]], object]
     ) -> None:
         self.validators[type_] = validator
+    
+    def export_as_dict(self) -> dict:
+        return {key: getattr(self, key) for key in self.types.keys()}
