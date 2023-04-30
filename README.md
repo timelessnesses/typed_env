@@ -29,7 +29,7 @@ a = MyDotEnv()
 a.add_validator(BallsEnum, lambda x: BallsEnum(int(x)))
 a.get_env(typed_env.Method.dotenv, dotenv=".env") # you have options to either get only from dotenv or os.environ or both!
 """
-a.get_env(typed_env.Method.all) # this fetch all the variable from both dotenv and os.environ
+a.get_env(typed_env.Method.all, dotenv="path_to_.env") # this fetch all the variable from both dotenv and os.environ
 a.get_env(typed_env.Method.env) # this fetch all the variable from os.environ
 a.get_env(typed_env.Method.dotenv, dotenv="path_to_.env") # this fetch all the variable from dotenv
 NOTE: for dotenv/all method you have to supply dotenv argument
