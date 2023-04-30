@@ -219,7 +219,17 @@ class TypedEnv:
     def add_validator(
         self, type_: object, validator: Callable[[Optional[str]], object]
     ) -> None:
+        """
+        Add a validator for a type.
+        This is important if you have custom type like a class or an enum.
+        NOTE: If there's same type it will get overwritten.
+        """
         self.validators[type_] = validator
     
     def export_as_dict(self) -> dict:
+        
+        """
+        Exporting all variables as a dict.
+        NOTE: This will not export variables that are not set. So you had to call load method before this.
+        """
         return {key: getattr(self, key) for key in self.types.keys()}
