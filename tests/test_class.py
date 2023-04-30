@@ -38,6 +38,12 @@ class TestClass(unittest.TestCase):
         x.raise_error_on_unknown_env(False)
         x.load()
         assert x.sex
+        
+    def test_f(self):
+        x = MyDotEnv()
+        x.get_env(Method.dotenv, dotenv="./tests/valid.env")
+        x.load()
+        assert x.export_as_dict() == {"sex": True}
 
 
 if __name__ == "__main__":
