@@ -2,9 +2,9 @@ import datetime
 from enum import Enum
 from json import loads
 from typing import Any, Callable, Optional
-
+import os
 from dotenv import dotenv_values
-
+import warnings
 
 def int_validator(value: Optional[str]) -> int:
     if value is None:
@@ -119,6 +119,10 @@ default_validators: dict[object, Callable[[Optional[str]], Any]] = {
     Optional[list]: optional_list_validator
 }
 
+class Method(Enum):
+    dotenv = 0
+    env = 1
+    all = 2
 
 class TypedEnv:
     """
@@ -136,6 +140,8 @@ class TypedEnv:
 
     types: dict[str, object] = {}
     validators: dict[object, Callable[[Optional[str]], object]] = {}
+    envs: dict[str, Optional[str]] = {}
+    raise_error_on_unknown_env_op: bool = True
 
     def __init_subclass__(cls) -> None:
         cls.types = {}
@@ -144,11 +150,42 @@ class TypedEnv:
             cls.types[key] = value
         cls.validators.update(default_validators)
 
-    def load(self, dotenv: Optional[str] = None, **kwargs) -> None:
-        envs = dotenv_values(dotenv_path=dotenv, **kwargs)
+    def get_env(self,method: Method=Method.dotenv,dotenv:Optional[str] = None,**kwargs):
+        """
+        This method loads environment variables from .env file or os.environ or both.
+        Default way to get enviroment variable is from .env file currently. You can change it with Method Enum.
+        You HAVE to call this method before load method.
+        """
+        
+        if method == Method.env and dotenv is not None:
+            raise ValueError("dotenv argument is not needed when method is Method.env")
+        elif method in (Method.dotenv, Method.all) and dotenv is None:
+            raise ValueError("dotenv argument is required when method is Method.dotenv or Method.all")
+        if method == Method.dotenv:
+            self.envs = dotenv_values(dotenv,**kwargs)
+        elif method == Method.env:
+            self.envs = dict(os.environ)
+        elif method == Method.all:
+            self.envs = {**dict(os.environ),**dotenv_values(dotenv,**kwargs)}
+        else:
+            raise ValueError("Unknown method")
+        
+    def raise_error_on_unknown_env(self, enable: bool):
+        """
+        When this is enabled, if there is an environment variable that is not defined in the class, it will raise an error, else it will raise a warning.
+        """
+        self.raise_error_on_unknown_env_op = enable
+
+    def load(self) -> None:
+        """
+        Load environment variables from .env file or os.environ or both based on get_env method.
+        """
+        envs = self.envs
+        if not envs:
+            raise ValueError("No environment variables were loaded!")
         successful = {}
         for key, value in envs.items():
-            if key in self.types:
+            if key in self.types.keys():
                 try:
                     value = self.validators[self.types[key]](value)
                 except ValueError as e:
@@ -164,7 +201,10 @@ class TypedEnv:
                     elif not hasattr(self, key) and self.types[key] is Optional:
                         setattr(self, key, None)
                 continue
-            raise ValueError(f"Unknown type {self.types[key]}")
+            if self.raise_error_on_unknown_env_op:
+                raise ValueError(f"Unknown variable {key}")
+            else:
+                warnings.warn(f"Unknown variable {key}")
         # now we check if any enviroment variable were not used and any variable that we didn't set
         for key, value in self.types.items():
             if key not in successful:
